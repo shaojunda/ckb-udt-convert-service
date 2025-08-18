@@ -148,6 +148,9 @@ export function calculateBidUdts(
   );
   const bidUdts = normalizedCkbytes.mul(updatedPrice);
 
+  console.log("bidUdts", bidUdts.toDecimalString());
+  console.log("bidUdts 1", ccc.fixedPointFrom(bidUdts.toDecimalString(), 6));
+
   return ccc.fixedPointFrom(bidUdts.toDecimalString(), 6);
 }
 

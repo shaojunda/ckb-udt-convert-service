@@ -135,8 +135,16 @@ function snakeToCamel(obj: any) {
 const ERROR_CODE_INVALID_INPUT = 2001;
 const ERROR_CODE_SERVER = 2002;
 
+<<<<<<< HEAD
 async function initiate(params: Params): Promise<Result> {
   let tx = params.tx;
+=======
+async function initiate(params: any): Promise<Result> {
+  // TODO: validate input parameters
+  let tx = ccc.Transaction.from(params[0]);
+  console.log("tx", tx);
+  console.log("params", params);
+>>>>>>> dbc4fae (chore: log params)
 
   const currentTimestamp = epoch_timestamp();
   const expiredTimestamp = (
@@ -170,6 +178,7 @@ async function initiate(params: Params): Promise<Result> {
 
   const inputCapacity = await tx.getInputsCapacity(funder.client);
   const outputCapacity = tx.getOutputsCapacity();
+
   if (inputCapacity >= outputCapacity) {
     return {
       error: {
@@ -355,8 +364,16 @@ async function initiate(params: Params): Promise<Result> {
   };
 }
 
+<<<<<<< HEAD
 async function confirm(params: Params): Promise<Result> {
   let tx = params.tx;
+=======
+async function confirm(params: any): Promise<Result> {
+  // TODO: validate input parameters
+  console.log("params", params);
+  console.log("params[0]", params[0]);
+  let tx = ccc.Transaction.from(params[0]);
+>>>>>>> dbc4fae (chore: log params)
   if (tx.inputs.length === 0) {
     return {
       error: {
@@ -371,8 +388,16 @@ async function confirm(params: Params): Promise<Result> {
     parseInt(currentTimestamp) + commitingSeconds
   ).toString();
 
+<<<<<<< HEAD
   const keyBytes = txExternalKey(tx);
   const txKey = buildKey(KEY_PREFIX_TX, keyBytes);
+=======
+  const lockedCellBytes = ccc.hexFrom(
+    tx.inputs[tx.inputs.length - 1].previousOutput.toBytes(),
+  );
+  const txKey = buildKey(KEY_PREFIX_TX, lockedCellBytes);
+  console.log("txKey", txKey);
+>>>>>>> dbc4fae (chore: log params)
   const savedTxBytes = await dbConnection.get(txKey);
 
   const INVALID_CELL_ERROR = {
@@ -381,6 +406,8 @@ async function confirm(params: Params): Promise<Result> {
       message: "Locked cell is missing, invalid or expired!",
     },
   };
+  console.log("savedTxBytes", savedTxBytes);
+
   if (savedTxBytes === null || savedTxBytes === undefined) {
     return INVALID_CELL_ERROR;
   }
@@ -388,6 +415,7 @@ async function confirm(params: Params): Promise<Result> {
     const savedTx = ccc.Transaction.fromBytes(savedTxBytes);
     if (!(await compareTx(tx, savedTx))) {
       Logger.error(`User provided a modified tx for ${savedTx.hash()}`);
+      console.log("compareTx", compareTx(tx, savedTx));
       return INVALID_CELL_ERROR;
     }
   } catch (e) {
@@ -460,25 +488,130 @@ async function confirm(params: Params): Promise<Result> {
 }
 
 // Only witnesses belonging to users can be tweaked(mainly for signatures)
-async function compareTx(
-  tx: ccc.Transaction,
-  savedTx: ccc.Transaction,
-): Promise<boolean> {
-  if (
-    tx.hash() !== savedTx.hash() ||
-    tx.witnesses.length !== savedTx.witnesses.length
-  ) {
+function compareTx(tx: ccc.Transaction, savedTx: ccc.Transaction): boolean {
+  console.log("tx.hash()", tx.hash());
+  console.log("savedTx.hash()", savedTx.hash());
+  console.log("tx.witnesses.length", tx.witnesses.length);
+  console.log("savedTx.witnesses.length", savedTx.witnesses.length);
+
+  // Check hash first
+  if (tx.hash() !== savedTx.hash()) {
+    console.log("❌ Transaction hash mismatch!");
+    console.log("tx inputs length:", tx.inputs.length);
+    console.log("savedTx inputs length:", savedTx.inputs.length);
+    console.log("tx outputs length:", tx.outputs.length);
+    console.log("savedTx outputs length:", savedTx.outputs.length);
+
+    // Compare inputs
+    console.log("🔍 Comparing inputs:");
+    for (let i = 0; i < Math.max(tx.inputs.length, savedTx.inputs.length); i++) {
+      if (i < tx.inputs.length && i < savedTx.inputs.length) {
+        const input1 = tx.inputs[i];
+        const input2 = savedTx.inputs[i];
+        console.log(`Input ${i}:`);
+        console.log(`  tx: ${input1.previousOutput.txHash}:${input1.previousOutput.index}, since: ${input1.since}`);
+        console.log(`  saved: ${input2.previousOutput.txHash}:${input2.previousOutput.index}, since: ${input2.since}`);
+        console.log(`  match: ${input1.previousOutput.txHash === input2.previousOutput.txHash && input1.previousOutput.index === input2.previousOutput.index && input1.since === input2.since}`);
+      }
+    }
+
+    // Compare outputs
+    console.log("🔍 Comparing outputs:");
+    for (let i = 0; i < Math.max(tx.outputs.length, savedTx.outputs.length); i++) {
+      if (i < tx.outputs.length && i < savedTx.outputs.length) {
+        const output1 = tx.outputs[i];
+        const output2 = savedTx.outputs[i];
+        console.log(`Output ${i}:`);
+        console.log(`  tx capacity: ${output1.capacity}`);
+        console.log(`  saved capacity: ${output2.capacity}`);
+        console.log(`  capacity match: ${output1.capacity === output2.capacity}`);
+
+        // Compare lock scripts
+        console.log(`  tx lock: ${output1.lock?.codeHash}:${output1.lock?.hashType}:${output1.lock?.args}`);
+        console.log(`  saved lock: ${output2.lock?.codeHash}:${output2.lock?.hashType}:${output2.lock?.args}`);
+
+        // Compare type scripts
+        console.log(`  tx type: ${output1.type?.codeHash}:${output1.type?.hashType}:${output1.type?.args}`);
+        console.log(`  saved type: ${output2.type?.codeHash}:${output2.type?.hashType}:${output2.type?.args}`);
+      }
+    }
+
+    // Compare outputs data
+    console.log("🔍 Comparing outputs data:");
+    for (let i = 0; i < Math.max(tx.outputsData.length, savedTx.outputsData.length); i++) {
+      if (i < tx.outputsData.length && i < savedTx.outputsData.length) {
+        console.log(`OutputData ${i}:`);
+        console.log(`  tx: ${tx.outputsData[i]}`);
+        console.log(`  saved: ${savedTx.outputsData[i]}`);
+        console.log(`  match: ${tx.outputsData[i] === savedTx.outputsData[i]}`);
+      }
+    }
+
+    // Compare cellDeps
+    console.log("🔍 Comparing cellDeps:");
+    console.log("tx cellDeps length:", tx.cellDeps.length);
+    console.log("savedTx cellDeps length:", savedTx.cellDeps.length);
+    for (let i = 0; i < Math.max(tx.cellDeps.length, savedTx.cellDeps.length); i++) {
+      if (i < tx.cellDeps.length && i < savedTx.cellDeps.length) {
+        const cellDep1 = tx.cellDeps[i];
+        const cellDep2 = savedTx.cellDeps[i];
+        console.log(`CellDep ${i}:`);
+        console.log(`  tx: ${cellDep1.outPoint.txHash}:${cellDep1.outPoint.index}, depType: ${cellDep1.depType}`);
+        console.log(`  saved: ${cellDep2.outPoint.txHash}:${cellDep2.outPoint.index}, depType: ${cellDep2.depType}`);
+        const match = cellDep1.outPoint.txHash === cellDep2.outPoint.txHash &&
+                      cellDep1.outPoint.index === cellDep2.outPoint.index &&
+                      cellDep1.depType === cellDep2.depType;
+        console.log(`  match: ${match}`);
+      }
+    }
+
+    // Compare headerDeps
+    console.log("🔍 Comparing headerDeps:");
+    console.log("tx headerDeps length:", tx.headerDeps.length);
+    console.log("savedTx headerDeps length:", savedTx.headerDeps.length);
+    for (let i = 0; i < Math.max(tx.headerDeps.length, savedTx.headerDeps.length); i++) {
+      if (i < tx.headerDeps.length && i < savedTx.headerDeps.length) {
+        console.log(`HeaderDep ${i}:`);
+        console.log(`  tx: ${tx.headerDeps[i]}`);
+        console.log(`  saved: ${savedTx.headerDeps[i]}`);
+        console.log(`  match: ${tx.headerDeps[i] === savedTx.headerDeps[i]}`);
+      }
+    }
+
+    // Compare version
+    console.log("🔍 Comparing version:");
+    console.log("tx version:", tx.version);
+    console.log("savedTx version:", savedTx.version);
+    console.log("version match:", tx.version === savedTx.version);
+
     return false;
   }
 
-  const funderScript = (await funder.getAddressObjSecp256k1()).script;
-  for (let i = 0; i < tx.witnesses.length; i++) {
-    const inputCell = await tx.inputs[i].getCell(funder.client);
-    if (inputCell.cellOutput.lock.eq(funderScript)) {
-      if (tx.witnesses[i].length !== savedTx.witnesses[i].length) {
-        return false;
-      }
+  // Check witnesses length
+  if (tx.witnesses.length !== savedTx.witnesses.length) {
+    console.log("❌ Witnesses length mismatch!");
+    return false;
+  }
+
+  // Check last witness
+  const lastWitnessMatch = tx.witnesses[tx.witnesses.length - 1] === savedTx.witnesses[savedTx.witnesses.length - 1];
+  if (!lastWitnessMatch) {
+    console.log("❌ Last witness mismatch!");
+    console.log("tx last witness:", tx.witnesses[tx.witnesses.length - 1]);
+    console.log("savedTx last witness:", savedTx.witnesses[savedTx.witnesses.length - 1]);
+    return false;
+  }
+
+  // Check other witnesses lengths
+  for (let i = 0; i < tx.witnesses.length - 1; i++) {
+    if (tx.witnesses[i].length !== savedTx.witnesses[i].length) {
+      console.log(`❌ Witness ${i} length mismatch!`);
+      console.log(`tx witness ${i} length:`, tx.witnesses[i].length);
+      console.log(`savedTx witness ${i} length:`, savedTx.witnesses[i].length);
+      return false;
     }
   }
+
+  console.log("✅ All checks passed!");
   return true;
 }

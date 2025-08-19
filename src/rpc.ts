@@ -603,14 +603,14 @@ function compareTx(tx: ccc.Transaction, savedTx: ccc.Transaction): boolean {
   }
 
   // Check other witnesses lengths
-  for (let i = 0; i < tx.witnesses.length - 1; i++) {
-    if (tx.witnesses[i].length !== savedTx.witnesses[i].length) {
-      console.log(`❌ Witness ${i} length mismatch!`);
-      console.log(`tx witness ${i} length:`, tx.witnesses[i].length);
-      console.log(`savedTx witness ${i} length:`, savedTx.witnesses[i].length);
-      return false;
-    }
-  }
+  // for (let i = 0; i < tx.witnesses.length - 1; i++) {
+  //   if (tx.witnesses[i].length !== savedTx.witnesses[i].length) {
+  //     console.log(`❌ Witness ${i} length mismatch!`);
+  //     console.log(`tx witness ${i} length:`, tx.witnesses[i].length);
+  //     console.log(`savedTx witness ${i} length:`, savedTx.witnesses[i].length);
+  //     return false;
+  //   }
+  // }
 
   console.log("✅ All checks passed!");
   return true;

@@ -135,16 +135,10 @@ function snakeToCamel(obj: any) {
 const ERROR_CODE_INVALID_INPUT = 2001;
 const ERROR_CODE_SERVER = 2002;
 
-<<<<<<< HEAD
 async function initiate(params: Params): Promise<Result> {
   let tx = params.tx;
-=======
-async function initiate(params: any): Promise<Result> {
-  // TODO: validate input parameters
-  let tx = ccc.Transaction.from(params[0]);
+
   console.log("tx", tx);
-  console.log("params", params);
->>>>>>> dbc4fae (chore: log params)
 
   const currentTimestamp = epoch_timestamp();
   const expiredTimestamp = (
@@ -364,16 +358,9 @@ async function initiate(params: any): Promise<Result> {
   };
 }
 
-<<<<<<< HEAD
 async function confirm(params: Params): Promise<Result> {
   let tx = params.tx;
-=======
-async function confirm(params: any): Promise<Result> {
-  // TODO: validate input parameters
-  console.log("params", params);
-  console.log("params[0]", params[0]);
-  let tx = ccc.Transaction.from(params[0]);
->>>>>>> dbc4fae (chore: log params)
+
   if (tx.inputs.length === 0) {
     return {
       error: {
@@ -388,16 +375,10 @@ async function confirm(params: any): Promise<Result> {
     parseInt(currentTimestamp) + commitingSeconds
   ).toString();
 
-<<<<<<< HEAD
   const keyBytes = txExternalKey(tx);
   const txKey = buildKey(KEY_PREFIX_TX, keyBytes);
-=======
-  const lockedCellBytes = ccc.hexFrom(
-    tx.inputs[tx.inputs.length - 1].previousOutput.toBytes(),
-  );
-  const txKey = buildKey(KEY_PREFIX_TX, lockedCellBytes);
+
   console.log("txKey", txKey);
->>>>>>> dbc4fae (chore: log params)
   const savedTxBytes = await dbConnection.get(txKey);
 
   const INVALID_CELL_ERROR = {
@@ -482,7 +463,7 @@ async function confirm(params: any): Promise<Result> {
 
   return {
     result: {
-      transaction: buildTx(params.c, tx),
+      transaction: buildTx(params.c, signedTx),
     },
   };
 }

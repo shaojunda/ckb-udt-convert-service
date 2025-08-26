@@ -173,7 +173,7 @@ async function initiate(params: Params): Promise<Result> {
 
   const inputCapacity = await tx.getInputsCapacity(funder.client);
   const outputCapacity = tx.getOutputsCapacity();
-  if (inputCapacity >= outputCapacity) {
+  if (inputCapacity > outputCapacity) {
     return {
       error: {
         code: ERROR_CODE_INVALID_INPUT,

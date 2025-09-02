@@ -367,6 +367,7 @@ async function initiate(config: RpcConfig, params: Params): Promise<Result> {
       transaction: buildTx(params.c, tx),
       ask_tokens: askTokens,
       bid_tokens: bidTokens,
+      udt_price_per_ckb: priceStr,
     },
   };
 }
